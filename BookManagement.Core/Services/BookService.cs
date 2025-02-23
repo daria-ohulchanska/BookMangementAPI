@@ -48,13 +48,13 @@ public class BookService : IBookService
         });
 
         await _bookRepository.AddRangeAsync(entities.ToList());
-        
+
         return models;
     }
 
     public async Task<DetailBookModel?> GetAsync(int id)
     {
-        var entity = await _bookRepository.GetByIdAsync(id);
+        var entity = await _bookRepository.GetAsync(id);
         if (entity == null) 
             return null;
         
@@ -62,6 +62,7 @@ public class BookService : IBookService
         
         var model = new DetailBookModel
         {
+            Id = entity.Id,
             Title = entity.Title,
             Author = entity.Author,
             PublicationYear = entity.PublicationYear,

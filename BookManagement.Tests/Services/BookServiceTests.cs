@@ -1,34 +1,96 @@
-using Xunit;
+using BookManagement.Core.Models;
+using BookManagement.Core.Services;
+using BookManagement.Data.Entities;
+using BookManagement.Data.Repositories;
+using Moq;
 
-public class BookServiceTests
+namespace BookManagement.Tests.Services
 {
-    [Fact]
-    public void Test_AddBook_ShouldReturnTrue_WhenBookIsValid()
+    public class BookServiceTests
     {
-        // Arrange
-        var bookService = new BookService();
-        var book = new Book { Title = "Test Book", Author = "Author" };
+        private readonly Mock<IBookRepository> _mockBookRepository;
+        private readonly BookService _bookService;
 
-        // Act
-        var result = bookService.AddBook(book);
+        public BookServiceTests()
+        {
+            _mockBookRepository = new Mock<IBookRepository>();
+            _bookService = new BookService(_mockBookRepository.Object);
+        }
 
-        // Assert
-        Assert.True(result);
-    }
+        [Fact]
+        public async Task GetAsync_ReturnsBook_WhenBookExists()
+        {
+            // Arrange
+            var bookId = 1;
+            var book = new BookEntity { Id = bookId, Title = "Test Book", Author = "Test Author" };
+            _mockBookRepository.Setup(repo => repo.GetAsync(bookId)).ReturnsAsync(book);
 
-    [Fact]
-    public void Test_GetBook_ShouldReturnBook_WhenBookExists()
-    {
-        // Arrange
-        var bookService = new BookService();
-        var book = new Book { Title = "Test Book", Author = "Author" };
-        bookService.AddBook(book);
+            // Act
+            var result = await _bookService.GetAsync(bookId);
 
-        // Act
-        var result = bookService.GetBook(book.Title);
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(bookId, result.Id);
+        }
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(book.Title, result.Title);
+        [Fact]
+        public async Task GetAsync_ReturnsNull_WhenBookDoesNotExist()
+        {
+            // Arrange
+            var bookId = 1;
+            _mockBookRepository.Setup(repo => repo.GetAsync(bookId)).ReturnsAsync((BookEntity?)null);
+
+            // Act
+            var result = await _bookService.GetAsync(bookId);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task AddAsync_AddsBookSuccessfully()
+        {
+            // Arrange
+            var bookEntity = new BookEntity { Id = 1, Title = "New Book", Author = "New Author", PublicationYear = 2023 };
+            var bookModel = new BookModel { Title = bookEntity.Title, Author = bookEntity.Author, PublicationYear = bookEntity.PublicationYear };
+            _mockBookRepository.Setup(repo => repo.AddAsync(It.IsAny<BookEntity>()));
+
+            // Act
+            var result = await _bookService.AddAsync(bookModel);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(bookEntity.Title, result.Title);
+            _mockBookRepository.Verify(repo => repo.AddAsync(It.IsAny<BookEntity>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_UpdatesBookSuccessfully()
+        {
+            // Arrange
+            var bookEntity = new BookEntity { Id = 1, Title = "Updated Book", Author = "Updated Author", PublicationYear = 2023 };
+            var bookModel = new BookModel { Id = 1, Title = "Updated Book", Author = "Updated Author", PublicationYear = 2023 };
+            _mockBookRepository.Setup(repo => repo.UpdateAsync(bookEntity)).Returns(Task.CompletedTask);
+
+            // Act
+            await _bookService.UpdateAsync(bookModel);
+
+            // Assert
+            _mockBookRepository.Verify(repo => repo.UpdateAsync(It.IsAny<BookEntity>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SoftDeleteAsync_DeletesBookSuccessfully()
+        {
+            // Arrange
+            var bookId = 1;
+            _mockBookRepository.Setup(repo => repo.SoftDeleteAsync(bookId)).Returns(Task.CompletedTask);
+
+            // Act
+            await _bookService.SoftDeleteAsync(bookId);
+
+            // Assert
+            _mockBookRepository.Verify(repo => repo.SoftDeleteAsync(bookId), Times.Once);
+        }
     }
 }

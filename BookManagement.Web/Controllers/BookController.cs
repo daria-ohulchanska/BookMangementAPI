@@ -67,8 +67,8 @@ public class BookController : ControllerBase
         return Created(nameof(Get), added);
     }
 
-    [HttpPost]
-    public async Task<ActionResult<List<BookModel>>> AddRange(AddBooksRequest request)
+    [HttpPost("add-range")]
+    public async Task<ActionResult<List<BookModel>>> AddRange([FromQuery]AddBooksRequest request)
     {
         if (request.Books.Any(book => book.Title.IsNullOrEmpty()
                                       || book.Author.IsNullOrEmpty()

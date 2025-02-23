@@ -5,7 +5,7 @@ namespace BookManagement.Data.Repositories;
 
 public interface IBookRepository
 {
-    Task<BookEntity?> GetByIdAsync(int id);
+    Task<BookEntity?> GetAsync(int id);
     Task<List<string>> GetTitlePageAsync(PaginationParams paginationParams);
     Task AddAsync(BookEntity book);
     Task AddRangeAsync(List<BookEntity> books);

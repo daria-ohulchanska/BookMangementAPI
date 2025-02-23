@@ -3,7 +3,6 @@ using BookManagement.Data.Entities;
 using BookManagement.Data.Extensions;
 using BookManagement.Shared.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace BookManagement.Data.Repositories;
 
@@ -16,7 +15,7 @@ public class BookRepository : IBookRepository
         _context = context;
     }
 
-    public async Task<BookEntity?> GetByIdAsync(int id)
+    public async Task<BookEntity?> GetAsync(int id)
     {
         return await _context.Books.FindAsync(id);
     }
@@ -81,7 +80,7 @@ public class BookRepository : IBookRepository
             .Where(b => ids.Contains(b.Id))
             .ToListAsync();
         
-        if (books.IsNullOrEmpty()) 
+        if (books.Count == 0) 
             return;
 
         books.ForEach(b => b.IsDeleted = true);

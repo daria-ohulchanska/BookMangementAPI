@@ -2,18 +2,19 @@ using BookManagement.Core.Models;
 using BookManagement.Core.Services;
 using BookManagement.Shared.Models;
 using BookManagementAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace BookManagementAPI.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class BookController : ControllerBase
+public class BooksController : ControllerBase
 {
     private readonly IBookService _bookService;
 
-    public BookController(IBookService bookService)
+    public BooksController(IBookService bookService)
     {
         _bookService = bookService;
     }
@@ -48,9 +49,9 @@ public class BookController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<BookModel>> Add(AddBookRequest request)
     {
-        if (request.Title.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(request.Title))
             return BadRequest("Invalid title");
-        if (request.Author.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(request.Author))
             return BadRequest("Invalid author");
         if (request.PublicationYear > DateTime.Now.Year || request.PublicationYear < 0)
             return BadRequest("Invalid year");
@@ -70,8 +71,8 @@ public class BookController : ControllerBase
     [HttpPost("add-range")]
     public async Task<ActionResult<List<BookModel>>> AddRange([FromQuery]AddBooksRequest request)
     {
-        if (request.Books.Any(book => book.Title.IsNullOrEmpty()
-                                      || book.Author.IsNullOrEmpty()
+        if (request.Books.Any(book => string.IsNullOrEmpty(book.Title) 
+                                      || string.IsNullOrEmpty(book.Author) 
                                       || book.PublicationYear > DateTime.Now.Year
                                       || book.PublicationYear < 0))
         {
